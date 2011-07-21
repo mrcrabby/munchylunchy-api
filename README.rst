@@ -46,4 +46,6 @@ Endpoint List
     /health/ping
     /health/redis
     /tastes/set
+    /tastes/list
+    /tastes/clear
 

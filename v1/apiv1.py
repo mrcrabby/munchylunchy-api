@@ -15,5 +15,7 @@ def register(patterns):
         url("health/ping", health.PingHandler),
         url("health/redis", health.RedisHealth),
         url("tastes/set", tastes.TasteSet),
+        url("tastes/list", tastes.TasteList),
+        url("tastes/clear", tastes.TasteClear),
     ])
     return patterns
