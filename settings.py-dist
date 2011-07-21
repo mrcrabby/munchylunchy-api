@@ -6,5 +6,10 @@ SECRET = "Change this to something secret"
 with open("/var/auth/redis") as redis_auth:
     REDIS_HOST = "localhost"
     REDIS_AUTH = redis_auth.read()
-    REDIS_DB = 4
+    REDIS_DB = 0
+
+YELP_CONSUMER_KEY = ""
+YELP_CONSUMER_SECRET = ""
+YELP_TOKEN = ""
+YELP_TOKEN_SECRET = ""
 
