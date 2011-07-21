@@ -1,0 +1,10 @@
+
+SECRET = "Change this to something secret"
+
+# The file here should exist and contain the key to Redis so it's not in your
+# repo.
+with open("/var/auth/redis") as redis_auth:
+    REDIS_HOST = "localhost"
+    REDIS_AUTH = redis_auth.read()
+    REDIS_DB = 4
+

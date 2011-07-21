@@ -4,3 +4,4 @@
 .figleaf
 *.swp
 /vendor
+settings.py

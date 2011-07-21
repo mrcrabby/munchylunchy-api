@@ -5,7 +5,7 @@ from apihandler import APIHandler
 
 patterns = []
 
-import apiv1
+import v1.apiv1 as apiv1
 apiv1.register(patterns)
 
 
