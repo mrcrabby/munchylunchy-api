@@ -39,11 +39,13 @@ class APIHandler(web.RequestHandler):
         return self.wrap_request(self.wrap_post, *args, **kwargs)
 
     def wrap_request(self, wrapper, *args, **kwargs):
+        output = wrapper(*args, **kwargs)
+        self._format_output(output)
+
+    def _format_output(self, output):
         response_type = "json"
         if self.get_argument("type", default="json") in RESPONSE_TYPE:
             response_type = self.get_argument("type", default="json")
-
-        output = wrapper(*args, **kwargs)
 
         if response_type == "json":
             output = json.dumps(output)
@@ -62,6 +64,7 @@ class APIHandler(web.RequestHandler):
             self.write('<?xml version="1.0"?><api>')
             self.write(dict2xml.convert_dict_to_xml(output))
             self.write('</api>')
+
 
     def wrap_get(self, *args, **kwargs):
         # By default, no endpoint already exists.

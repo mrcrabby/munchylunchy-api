@@ -3,10 +3,14 @@ import oauth2
 import urllib
 import urllib2
 
+from tornado.httpclient import AsyncHTTPClient
+
 import settings
 
 
-def request(url_params):
+AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+
+def request(url_params, callback):
     """Returns response for API request."""
 
     # Unsigned URL
@@ -16,34 +20,35 @@ def request(url_params):
     host = "api.yelp.com"
     path = "/v2/search"
     url = 'http://%s%s?%s' % (host, path, encoded_params)
+
     # Sign the URL
     consumer = oauth2.Consumer(settings.YELP_CONSUMER_KEY,
-                               settings.YELP_COMSUMER_SECRET)
+                               settings.YELP_CONSUMER_SECRET)
     oauth_request = oauth2.Request('GET', url, {})
     oauth_request.update({'oauth_nonce': oauth2.generate_nonce(),
                           'oauth_timestamp': oauth2.generate_timestamp(),
                           'oauth_token': settings.YELP_TOKEN,
                           'oauth_consumer_key': settings.YELP_CONSUMER_KEY})
 
-    token = oauth2.Token(token, settings.YELP_TOKEN_SECRET)
+    token = oauth2.Token(settings.YELP_TOKEN, settings.YELP_TOKEN_SECRET)
     oauth_request.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), consumer,
-                               settings.YELP_TOKEN)
-    signed_url = oauth_request.to_url()
+                               token)
+    # Nobody likes unicode in their URL.
+    signed_url = str(oauth_request.to_url())
 
     # Connect
-    try:
-        conn = urllib2.urlopen(signed_url, None)
-        try:
-            response = json.loads(conn.read())
-        finally:
-            conn.close()
-    except urllib2.HTTPError, error:
-        response = json.loads(error.read())
+    def wrap_callback(response):
+        if response.error:
+            print "Yelp API error: %s" % response.error
+        else:
+            callback(json.loads(response.body))
 
-    return response
+    client = AsyncHTTPClient()
+    client.fetch(signed_url, wrap_callback)
 
 
-def search(latitude, longitude, categories=None, radius=3, limit=100):
+def search(callback, latitude, longitude, categories=None, radius=3,
+           limit=20):
     """
     Search Yelp for restaurants near a set of geocoords.
 
@@ -56,10 +61,11 @@ def search(latitude, longitude, categories=None, radius=3, limit=100):
     params = {"term": "food",
               "ll": "%s,%s" % (latitude, longitude),
               "limit": limit,
+              "sort": 2,
               "radius_filter": radius * 1609}
 
     if categories is not None:
         params["category_filter"] = ",".join(categories)
 
-    return request(params)
+    request(params, callback)
 

@@ -14,12 +14,12 @@ class AuthBrowserID(APIHandler):
     def wrap_post(self):
         assertion = self.get_argument("assertion")
         verification_url = "https://browserid.org/verify?%s"
-        verification_url %= urllib.urlencode(assertion=assertion,
-                                             audience="munchylunchy.com")
+        verification_url %= urllib.urlencode({"assertion": assertion,
+                                              "audience": "munchylunchy.com"})
 
         response = json.loads(urllib2.urlopen(verification_url).read())
         if response["status"] == "okay":
-            token = hashlib.sha256("".join([response["valid-until"],
+            token = hashlib.sha256("".join([str(response["valid-until"]),
                                             SECRET,
                                             response["email"]])).hexdigest()
             self.redis.set(response["email"], token)
@@ -29,6 +29,7 @@ class AuthBrowserID(APIHandler):
                     "token": token}
 
         else:
+            print response
             raise HTTPError(403)
 
 

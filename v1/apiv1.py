@@ -17,5 +17,6 @@ def register(patterns):
         url("tastes/set", tastes.TasteSet),
         url("tastes/list", tastes.TasteList),
         url("tastes/clear", tastes.TasteClear),
+        url("tastes/query", tastes.TasteQuery),
     ])
     return patterns

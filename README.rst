@@ -41,6 +41,8 @@ If the type is set to ``json``, another optional argument can be set (``callback
 Endpoint List
 =============
 
+::
+
     /auth/browserid
     /auth/token
     /health/ping
@@ -48,4 +50,5 @@ Endpoint List
     /tastes/set
     /tastes/list
     /tastes/clear
+    /tastes/query
 
