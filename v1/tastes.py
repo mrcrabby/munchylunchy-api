@@ -70,7 +70,10 @@ class TasteQuery(APIHandler):
             business_categories = set()
             for business in data["businesses"]:
                 for foo, c in business["categories"]:
+                    if c not in TASTES:
+                        continue
                     business_categories.add(c)
+
             business_categories -= user_tastes
 
             while len(business_categories) < 10:
@@ -90,6 +93,34 @@ class TasteQuery(APIHandler):
                                  "to_ask": to_ask})
 
             self.finish()
+
+            # Perform some after-the-fact calculations.
+            prepop = "tastes::prepopulate::%s" % self.email
+            self.redis.delete(prepop)
+            for business in data["businesses"]:
+                score = 0
+                if business["distance"] < 500:
+                    score += 1
+                elif business["distance"] > 1000:
+                    score -= (business["distance"] - 1000) / 500
+                    score = math.floor(score)
+
+                self.redis.zadd(prepop, score, business["phone"])
+                self.redis.hmset(
+                    "places::%s" % business["phone"],
+                    {"yelp_id": business["id"],
+                     "name": business["name"],
+                     "display_phone": business["display_phone"],
+                     "latitude": business["location"]["latitude"],
+                     "longitude": business["location"]["longitude"],
+                     "yelp_review_count": business["review_count"]})
+
+                for foo, c in business["categories"]:
+                    if c not in TASTES:
+                        continue
+                    self.redis.sadd("places::%s::categories" %
+                                        business["phone"],
+                                    c)
 
         yelp_search(collect_yelp, latitude=latitude, longitude=longitude)
 

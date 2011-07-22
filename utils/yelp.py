@@ -61,7 +61,7 @@ def search(callback, latitude, longitude, categories=None, radius=3,
     params = {"term": "food",
               "ll": "%s,%s" % (latitude, longitude),
               "limit": limit,
-              "sort": 2,
+              "sort": 1,
               "radius_filter": radius * 1609}
 
     if categories is not None:

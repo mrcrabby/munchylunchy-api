@@ -1,4 +1,17 @@
 
 TASTES = ("afghani", "african", "newamerican", "tradamerican", "argentine",
           "asianfusion", "bbq", "basque", "belgian", "brasseries",
-          "brazillian", "breakfast_brunch", "british")
+          "brazillian", "breakfast_brunch", "british", "buffets", "burgers",
+          "burmese", "cajun", "cambodian", "caribbean", "cheesesteaks",
+          "chinese", "dimsum", "creperies", "cuban", "delis", "diners",
+          "etheopian", "hotdogs", "filipino", "fishnchips", "fondue",
+          "foodstands", "french", "gastropub", "german", "greek", "halal",
+          "hawaiian", "himalayan", "hotdog", "hungarian", "indpak",
+          "indonesian", "irish", "italian", "japanese", "korean", "latin",
+          "malaysian", "mediterranean", "mexican", "mideastern",
+          "modern_european", "mongolian", "moroccan", "pakistani", "persian",
+          "peruvian", "pizza", "polish", "portuguese", "russian", "sandwiches",
+          "scandinavian", "seafood", "singaporean", "soulfood", "soup",
+          "southern", "spanish", "steak", "sushi", "taiwanese", "tapas",
+          "tapasmallplates", "tex-mex", "thai", "turkish", "ukrainian",
+          "vegan", "vietnamese", )
