@@ -98,10 +98,10 @@ class TasteQuery(APIHandler):
             self.redis.set("cache::yelp::%s,%s" % (latitude, longitude),
                            json.dumps(data))
 
-        yelp_search(collect_yelp, latitude=latitude, longitude=longitude,
-                    redis=self.redis)
-
         user_tastes = self.redis.sunion("tastes::like::%s" % self.email,
                                         "tastes::dislike::%s" % self.email)
         user_tastes = frozenset(user_tastes)
+
+        yelp_search(collect_yelp, latitude=latitude, longitude=longitude,
+                    redis=self.redis)
 
