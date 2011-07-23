@@ -102,7 +102,8 @@ class DecideHandler(APIHandler):
                 print "Pick output"
                 self.write({"result": "okay",
                             "business": data,
-                            "reasons": list(pick_reasons)})
+                            "reasons": list(pick_reasons),
+                            "stars": parse_rating(data["rating_img_url"])})
                 self.finish()
 
             business_data(pick_output, pick)
