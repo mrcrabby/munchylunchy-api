@@ -3,6 +3,7 @@ import uuid
 
 import tornado.web as web
 
+import settings
 from apihandler import APIHandler, require_user
 from utils.yelp import search as yelp_search, parse_rating, business_data
 
@@ -75,7 +76,7 @@ class DecideHandler(APIHandler):
         def yelp_callback(data):
             self.total_results = data["total"]
             self.total_pages = math.ceil(self.total_results / 20)
-            self.total_pages = min(self.total_pages, 2)
+            self.total_pages = min(self.total_pages, settings.YELP_PAGES)
 
             yelp_rec_callback(data)
 
@@ -85,33 +86,34 @@ class DecideHandler(APIHandler):
 
             self.onpage += 1
             print "Page?", self.onpage, self.total_pages
-            if self.onpage == self.total_pages:
+            if self.onpage >= self.total_pages:
                 after_yelp()
                 return
 
             print "Searching Yelp..."
             yelp_search(yelp_rec_callback, latitude=lat, longitude=lon,
-                        offset=self.onpage * 20)
+                        offset=self.onpage * 20, redis=self.redis)
 
         def after_yelp():
             print "After yelp"
             pick = self.redis.zrevrange(place_scores, 0, 1)[0]
-            pick_reasons = []
+
+            pick_reasons = self.redis.smembers(place_reasons_key % pick)
+            self.redis.delete(place_reasons_key % pick)
 
             def pick_output(data):
                 print "Pick output"
+                print pick_reasons
                 self.write({"result": "okay",
                             "business": data,
                             "reasons": list(pick_reasons),
                             "stars": parse_rating(data["rating_img_url"])})
                 self.finish()
 
-            business_data(pick_output, pick)
-            pick_reasons = self.redis.smembers(place_reasons_key % pick)
-            self.redis.delete(place_reasons_key % pick)
+            business_data(pick_output, pick, redis=self.redis)
             self.redis.lpush("places::history::%s" % self.email, pick)
 
         print "Searching Yelp initially..."
         yelp_search(yelp_callback, latitude=lat, longitude=lon,
-                    categories=user_tastes)
+                    categories=user_tastes, redis=self.redis)
 

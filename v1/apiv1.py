@@ -1,4 +1,5 @@
 import auth
+import groups
 import health
 import places
 import tastes
@@ -20,5 +21,8 @@ def register(patterns):
         url("tastes/clear", tastes.TasteClear),
         url("tastes/query", tastes.TasteQuery),
         url("places/decide", places.DecideHandler),
+        url("groups/create", groups.CreateGroup),
+        url("groups/register", groups.GroupRegister),
+        url("groups/poll", groups.GroupPoll),
     ])
     return patterns
