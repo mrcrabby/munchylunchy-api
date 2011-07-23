@@ -155,7 +155,7 @@ class GroupRegister(APIHandler):
             def get_tiny_business(choice):
                 id_, score = choice
                 data = json.loads(self.redis.get("cache::business::%s" % id_))
-                return data["name"], score
+                return (data["name"], score, id_)
 
             picks = self.redis.zrevrange(place_scores, 0, 3, withscores=True)
             picks = map(get_tiny_business, picks)
@@ -163,10 +163,15 @@ class GroupRegister(APIHandler):
             #pick_reasons = self.redis.smembers(place_reasons_key % pick)
             #self.redis.delete(place_reasons_key % pick)
 
+            latitude = self.redis.hget("group_props::%s" % group_id, "lat")
+            longitude = self.redis.hget("group_props::%s" % group_id, "lon")
+
             self.write({"result": "okay",
                         "registered": "yes",
                         "members": list(members),
-                        "choices": picks})
+                        "choices": picks,
+                        "latitude": latitude,
+                        "longitude": longitude})
             self.finish()
 
         print "Searching Yelp initially... (g)"
@@ -188,12 +193,17 @@ class GroupPoll(APIHandler):
             data = json.loads(self.redis.get("cache::business::%s" % id_))
             return {"name": data["name"],
                     "points": score,
+                    "id": id_,
                     "latitude": data["location"]["coordinate"]["latitude"],
                     "longitude": data["location"]["coordinate"]["longitude"]}
 
         choices = self.redis.zrevrange(zkey, 0, 3, withscores=True)
 
-        return {"members": list(self.redis.smembers(key)),
+        def get_locations(member):
+            lat, lon = self.redis.hget("group_pos::%s" % group_id, member).split(",")
+            return member, round(float(lat), 3), round(float(lon), 3)
+
+        return {"members": map(get_locations, list(self.redis.smembers(key))),
                 "choices": map(get_tiny_business, choices),
                 "latitude": self.redis.hget("group_props::%s" % group_id,
                                             "lat"),
