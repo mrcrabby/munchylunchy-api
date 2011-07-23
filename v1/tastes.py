@@ -76,9 +76,8 @@ class TasteQuery(APIHandler):
 
             business_categories -= user_tastes
 
-            while len(business_categories) < 10:
-                cat = random.choice(business_categories)
-                business_categories.discard(cat)
+            while len(business_categories) < 5:
+                business_categories.add(random.choice(TASTES))
 
             to_ask_range = math.ceil(len(user_tastes) / 5)
             to_ask_ranges = {0: 5, 1: 4, 2: 4, 3: 2}
@@ -89,38 +88,15 @@ class TasteQuery(APIHandler):
                 to_ask = 2
 
             self._format_output({"result": "okay",
-                                 "tastes": business_categories,
+                                 "tastes": list(business_categories),
                                  "to_ask": to_ask})
 
             self.finish()
 
-            # Perform some after-the-fact calculations.
-            prepop = "tastes::prepopulate::%s" % self.email
-            self.redis.delete(prepop)
-            for business in data["businesses"]:
-                score = 0
-                if business["distance"] < 500:
-                    score += 1
-                elif business["distance"] > 1000:
-                    score -= (business["distance"] - 1000) / 500
-                    score = math.floor(score)
-
-                self.redis.zadd(prepop, score, business["phone"])
-                self.redis.hmset(
-                    "places::%s" % business["phone"],
-                    {"yelp_id": business["id"],
-                     "name": business["name"],
-                     "display_phone": business["display_phone"],
-                     "latitude": business["location"]["latitude"],
-                     "longitude": business["location"]["longitude"],
-                     "yelp_review_count": business["review_count"]})
-
-                for foo, c in business["categories"]:
-                    if c not in TASTES:
-                        continue
-                    self.redis.sadd("places::%s::categories" %
-                                        business["phone"],
-                                    c)
+            # Post the data to the cache.
+            return
+            self.redis.set("cache::yelp::%s,%s" % (latitude, longitude),
+                           json.dumps(data))
 
         yelp_search(collect_yelp, latitude=latitude, longitude=longitude)
 

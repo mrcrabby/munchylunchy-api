@@ -1,5 +1,6 @@
 import auth
 import health
+import places
 import tastes
 
 
@@ -18,5 +19,6 @@ def register(patterns):
         url("tastes/list", tastes.TasteList),
         url("tastes/clear", tastes.TasteClear),
         url("tastes/query", tastes.TasteQuery),
+        url("places/decide", places.DecideHandler),
     ])
     return patterns

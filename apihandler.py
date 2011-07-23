@@ -11,8 +11,10 @@ RESPONSE_TYPE = ("json", "xml", )
 
 def require_user(func):
     def wrap(self, *args, **kwargs):
-        email = self.get_attribute("email")
-        token = self.get_attribute("token")
+        email = self.get_argument("email")
+        token = self.get_argument("token")
+        print email, token
+        print self.redis.get(email)
         if token != self.redis.get(email):
             raise web.HTTPError(403)
 

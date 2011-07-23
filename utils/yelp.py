@@ -10,7 +10,7 @@ import settings
 
 AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
 
-def request(url_params, callback):
+def request(url_params, endpoint, callback):
     """Returns response for API request."""
 
     # Unsigned URL
@@ -18,8 +18,7 @@ def request(url_params, callback):
     if url_params:
         encoded_params = urllib.urlencode(url_params)
     host = "api.yelp.com"
-    path = "/v2/search"
-    url = 'http://%s%s?%s' % (host, path, encoded_params)
+    url = 'http://%s%s?%s' % (host, endpoint, encoded_params)
 
     # Sign the URL
     consumer = oauth2.Consumer(settings.YELP_CONSUMER_KEY,
@@ -40,6 +39,7 @@ def request(url_params, callback):
     def wrap_callback(response):
         if response.error:
             print "Yelp API error: %s" % response.error
+            print response.body
         else:
             callback(json.loads(response.body))
 
@@ -48,7 +48,7 @@ def request(url_params, callback):
 
 
 def search(callback, latitude, longitude, categories=None, radius=3,
-           limit=20):
+           limit=20, offset=0):
     """
     Search Yelp for restaurants near a set of geocoords.
 
@@ -62,10 +62,35 @@ def search(callback, latitude, longitude, categories=None, radius=3,
               "ll": "%s,%s" % (latitude, longitude),
               "limit": limit,
               "sort": 1,
-              "radius_filter": radius * 1609}
+              "radius_filter": radius * 1609,
+              "offset": offset}
 
     if categories is not None:
         params["category_filter"] = ",".join(categories)
 
-    request(params, callback)
+    request(params, "/v2/search", callback)
+
+
+def business_data(callback, id_):
+    """Get the business listing for a Yelp business."""
+    request({}, "/v2/business/%s" % id_, callback)
+
+def parse_rating(url):
+    """Get the rating from the rating image url."""
+
+    ratings = {"stars_5": 5,
+               "stars_4_half": 4.5,
+               "stars_4": 4,
+               "stars_3_half": 3.5,
+               "stars_3": 3,
+               "stars_2_half": 2.5,
+               "stars_2": 2,
+               "stars_1_half": 1.5,
+               "stars_1": 1}
+
+    for rating in ratings:
+        if "%s." % rating in url:
+            return ratings[rating]
+
+    return 0
 
