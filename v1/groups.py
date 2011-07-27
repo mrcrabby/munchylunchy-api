@@ -200,7 +200,11 @@ class GroupPoll(APIHandler):
         choices = self.redis.zrevrange(zkey, 0, 3, withscores=True)
 
         def get_locations(member):
-            lat, lon = self.redis.hget("group_pos::%s" % group_id, member).split(",")
+            positions = self.redis.hget("group_pos::%s" % group_id, member)
+            if not positions:
+                return member, None, None
+
+            lat, lon = positions.split(",")
             return member, round(float(lat), 3), round(float(lon), 3)
 
         return {"members": map(get_locations, list(self.redis.smembers(key))),
