@@ -22,7 +22,9 @@ class AuthBrowserID(APIHandler):
             token = hashlib.sha256("".join([str(response["valid-until"]),
                                             SECRET,
                                             response["email"]])).hexdigest()
-            self.redis.set(response["email"], token)
+            user_key = "users::%s" % response["email"]
+            self.redis.set(user_key, token)
+            self.redis.expireat(user_key, int(response["valid-until"] / 1000))
 
             return {"result": "okay",
                     "email": response["email"],

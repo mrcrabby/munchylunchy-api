@@ -14,7 +14,7 @@ def require_user(func):
         email = self.get_argument("email")
         token = self.get_argument("token")
         print email, token
-        if token != self.redis.get(email):
+        if token != self.redis.get("users::%s" % email):
             raise web.HTTPError(403)
 
         self.email = email
